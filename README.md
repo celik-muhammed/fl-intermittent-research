@@ -6,6 +6,12 @@ Communication Constraints and Intermittent ClientAvailability".
 We build on top of the public repository found 
 ([here](https://github.com/google-research/federated/tree/master/optimization)). 
 
+## Reference
+```sh
+git clone https://github.com/mriberodiaz/client_availability.git
+
+# python3.9+ needed
+```
 
 ## Using this directory
 
