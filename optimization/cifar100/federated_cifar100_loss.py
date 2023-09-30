@@ -58,12 +58,12 @@ def run_federated(
         and `T` represents a python `Mapping` object.
 
   Moreover, the server state must have an attribute `model` of type
-  `tff.learning.ModelWeights`.
+  `tff.learning.models.ModelWeights`.
 
   Args:
     iterative_process_builder: A function that accepts a no-arg `model_fn`, and
       returns a `tff.templates.IterativeProcess`. The `model_fn` must return a
-      `tff.learning.Model`.
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]`.
     client_epochs_per_round: An integer representing the number of epochs of
       training performed per client in each training round.
     client_batch_size: An integer representing the batch size used on clients.
@@ -113,7 +113,7 @@ def run_federated(
   loss_builder = tf.keras.losses.SparseCategoricalCrossentropy
   metrics_builder = lambda: [tf.keras.metrics.SparseCategoricalAccuracy()]
 
-  def tff_model_fn() -> tff.learning.Model:
+  def tff_model_fn() -> Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]:
     return tff.learning.from_keras_model(
         keras_model=model_builder(),
         input_spec=input_spec,

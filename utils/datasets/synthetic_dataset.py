@@ -138,8 +138,8 @@ def generate_federated_softmax_data(num_users,batch_size,
                            ))
 
     clients_ids = np.arange(num_users).tolist()
-    federated_data = tff.simulation.ClientData.from_clients_and_fn(clients_ids, get_client_train_data)
-    test_data  = tff.simulation.ClientData.from_clients_and_fn(clients_ids, get_client_test_data)
+    federated_data = tff.simulation.datasets.ClientData.from_clients_and_fn(clients_ids, get_client_train_data)
+    test_data  = tff.simulation.datasets.ClientData.from_clients_and_fn(clients_ids, get_client_test_data)
 
     def preprocess_train_dataset(dataset):
         return dataset.shuffle(buffer_size=418).repeat(
@@ -170,7 +170,7 @@ def create_lr_federatedClientData(dimension,
                             y= y[client_id*num_samples_per_client:(client_id+1)*num_samples_per_client],
                            ))
     clients_ids = np.arange(num_clients).tolist()
-    federated_data = tff.simulation.ClientData.from_clients_and_fn(clients_ids, get_client_data)
+    federated_data = tff.simulation.datasets.ClientData.from_clients_and_fn(clients_ids, get_client_data)
     train, test = federated_data.train_test_client_split(federated_data, num_test_clients)
 
     def element_fn(element):

@@ -253,7 +253,7 @@ def construct_word_level_datasets(vocab_size: int,
     num_oov_buckets: Number of out of vocabulary buckets.
 
   Returns:
-    stackoverflow_train: An instance of `tff.simulation.ClientData`
+    stackoverflow_train: An instance of `tff.simulation.datasets.ClientData`
       representing Stackoverflow data for training.
     stackoverflow_validation: A split of the Stackoverflow Test data as outlined
       in `tff.simulation.datasets.stackoverflow`, containing at most

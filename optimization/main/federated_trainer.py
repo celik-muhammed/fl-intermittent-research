@@ -255,7 +255,7 @@ def main(argv):
 
   if FLAGS.schedule=='importance':
     def iterative_process_builder(
-      model_fn: Callable[[], tff.learning.Model],
+      model_fn: Callable[[], Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]],
       client_weight_fn: Optional[Callable[[Any], tf.Tensor]] = None,
     ) -> tff.templates.IterativeProcess:
 
@@ -274,13 +274,13 @@ def main(argv):
           aggregation_process = importance_aggregation_process)
   elif FLAGS.schedule=='loss':
     def iterative_process_builder(
-      model_fn: Callable[[], tff.learning.Model],
+      model_fn: Callable[[], Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]],
       client_weight_fn: Optional[Callable[[Any], tf.Tensor]] = None,
       ) -> tff.templates.IterativeProcess:
       """Creates an iterative process using a given TFF `model_fn`.
 
       Args:
-        model_fn: A no-arg function returning a `tff.learning.Model`.
+        model_fn: A no-arg function returning a `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]`.
         client_weight_fn: Optional function that takes the output of
           `model.report_local_outputs` and returns a tensor providing the weight
           in the federated average of model deltas. If not provided, the default
@@ -301,13 +301,13 @@ def main(argv):
           aggregation_process = None)
   else:
     def iterative_process_builder(
-        model_fn: Callable[[], tff.learning.Model],
+        model_fn: Callable[[], Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]],
         client_weight_fn: Optional[Callable[[Any], tf.Tensor]] = None,
         ) -> tff.templates.IterativeProcess:
       """Creates an iterative process using a given TFF `model_fn`.
 
       Args:
-        model_fn: A no-arg function returning a `tff.learning.Model`.
+        model_fn: A no-arg function returning a `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]`.
         client_weight_fn: Optional function that takes the output of
           `model.report_local_outputs` and returns a tensor providing the weight
           in the federated average of model deltas. If not provided, the default

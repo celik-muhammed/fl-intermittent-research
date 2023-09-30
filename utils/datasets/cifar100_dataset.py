@@ -63,7 +63,7 @@ def get_federated_cifar100(client_epochs_per_round,
       transformations will be disallowed.
 
   Returns:
-    A tuple of `tff.simulation.ClientData` and `tf.data.Datset` objects.
+    A tuple of `tff.simulation.datasets.ClientData` and `tf.data.Datset` objects.
   """
   if not isinstance(crop_shape, collections.Iterable):
     raise TypeError(

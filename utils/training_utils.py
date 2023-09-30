@@ -80,7 +80,7 @@ def build_evaluate_fn(
     eval_dataset: tf.data.Dataset, model_builder: Callable[[], tf.keras.Model],
     loss_builder: Callable[[], tf.keras.losses.Loss],
     metrics_builder: Callable[[], List[tf.keras.metrics.Metric]]
-) -> Callable[[tff.learning.ModelWeights], Dict[str, Any]]:
+) -> Callable[[tff.learning.models.ModelWeights], Dict[str, Any]]:
   """Builds an evaluation function for a given model and test dataset.
 
   The evaluation function takes as input a fed_avg_schedule.ServerState, and
@@ -96,7 +96,7 @@ def build_evaluate_fn(
       `tf.keras.metrics.Metric` objects.
 
   Returns:
-    A function that take as input a `tff.learning.ModelWeights` and returns
+    A function that take as input a `tff.learning.models.ModelWeights` and returns
     a dict of (name, value) pairs for each associated evaluation metric.
   """
 
@@ -110,12 +110,12 @@ def build_evaluate_fn(
 
   eval_tuple_dataset = convert_to_tuple_dataset(eval_dataset)
 
-  def evaluate_fn(reference_model: tff.learning.ModelWeights) -> Dict[str, Any]:
+  def evaluate_fn(reference_model: tff.learning.models.ModelWeights) -> Dict[str, Any]:
     """Evaluation function to be used during training."""
 
-    if not isinstance(reference_model, tff.learning.ModelWeights):
+    if not isinstance(reference_model, tff.learning.models.ModelWeights):
       raise TypeError('The reference model used for evaluation must be a'
-                      '`tff.learning.ModelWeights` instance.')
+                      '`tff.learning.models.ModelWeights` instance.')
 
     keras_model = compiled_eval_keras_model()
     reference_model.assign_weights_to(keras_model)
@@ -126,11 +126,11 @@ def build_evaluate_fn(
   return evaluate_fn
 
 def build_unweighted_test_fn(
-    federated_eval_dataset: tff.simulation.ClientData, 
+    federated_eval_dataset: tff.simulation.datasets.ClientData, 
     model_builder: Callable[[], tf.keras.Model],
     loss_builder: Callable[[], tf.keras.losses.Loss],
     metrics_builder: Callable[[], List[tf.keras.metrics.Metric]]
-) -> Callable[[tff.learning.ModelWeights], Dict[str, Any]]:
+) -> Callable[[tff.learning.models.ModelWeights], Dict[str, Any]]:
   """Builds an evaluation function for a given model and test dataset.
 
   The evaluation function takes as input a fed_avg_schedule.ServerState, and
@@ -146,7 +146,7 @@ def build_unweighted_test_fn(
       `tf.keras.metrics.Metric` objects.
 
   Returns:
-    A function that take as input a `tff.learning.ModelWeights` and returns
+    A function that take as input a `tff.learning.models.ModelWeights` and returns
     a dict of (name, value) pairs for each associated evaluation metric.
   """
 
@@ -160,12 +160,12 @@ def build_unweighted_test_fn(
 
   client_ids = federated_eval_dataset.client_ids
 
-  def evaluate_fn(reference_model: tff.learning.ModelWeights) -> Dict[str, Any]:
+  def evaluate_fn(reference_model: tff.learning.models.ModelWeights) -> Dict[str, Any]:
     """Evaluation function to be used during training."""
 
-    if not isinstance(reference_model, tff.learning.ModelWeights):
+    if not isinstance(reference_model, tff.learning.models.ModelWeights):
       raise TypeError('The reference model used for evaluation must be a'
-                      '`tff.learning.ModelWeights` instance.')
+                      '`tff.learning.models.ModelWeights` instance.')
 
     keras_model = compiled_eval_keras_model()
     reference_model.assign_weights_to(keras_model)
@@ -262,7 +262,7 @@ def build_sample_fn(
   return functools.partial(sample, random_seed=random_seed)
 
 def build_client_datasets_fn(
-    train_dataset: tff.simulation.ClientData,
+    train_dataset: tff.simulation.datasets.ClientData,
     train_clients_per_round: int,
     random_seed: Optional[int] = None,
     min_clients: Optional[int] = 50,
@@ -278,7 +278,7 @@ def build_client_datasets_fn(
   round, but with replacement across rounds) and returns their datasets.
 
   Args:
-    train_dataset: A `tff.simulation.ClientData` object.
+    train_dataset: A `tff.simulation.datasets.ClientData` object.
     train_clients_per_round: The number of client participants in each round.
     random_seed: If random_seed is set as an integer, then we use it as a random
       seed for which clients are sampled at each round. In this case, we set a
@@ -374,7 +374,7 @@ def update_vectors(r_vector,p_vector,availability, train_clients_per_round, beta
     
 
 def build_availability_client_datasets_fn(
-    train_dataset: tff.simulation.ClientData,
+    train_dataset: tff.simulation.datasets.ClientData,
     train_clients_per_round: int,
     beta,
     random_seed: Optional[int] = None,
@@ -392,7 +392,7 @@ def build_availability_client_datasets_fn(
   round, but with replacement across rounds) and returns their datasets.
 
   Args:
-    train_dataset: A `tff.simulation.ClientData` object.
+    train_dataset: A `tff.simulation.datasets.ClientData` object.
     train_clients_per_round: The number of client participants in each round.
     random_seed: If random_seed is set as an integer, then we use it as a random
       seed for which clients are sampled at each round. In this case, we set a

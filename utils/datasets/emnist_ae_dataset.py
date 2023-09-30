@@ -52,7 +52,7 @@ def get_emnist_datasets(client_batch_size,
       use EMNIST-62.
 
   Returns:
-    emnist_train: An instance of a `tff.simulation.ClientData` representing the
+    emnist_train: An instance of a `tff.simulation.datasets.ClientData` representing the
       training data.
     emnist_test: An instance of a `tf.data.Dataset` representing the testing
       data.

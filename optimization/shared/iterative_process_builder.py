@@ -39,7 +39,7 @@ with utils_impl.record_hparam_flags():
 FLAGS = flags.FLAGS
 
 # Convenience type aliases.
-ModelBuilder = Callable[[], tff.learning.Model]
+ModelBuilder = Callable[[], Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]]
 LossBuilder = Callable[[], tf.keras.losses.Loss]
 MetricsBuilder = Callable[[], List[tf.keras.metrics.Metric]]
 ClientWeightFn = Callable[..., float]
@@ -68,7 +68,7 @@ def from_flags(
     metrics_builder: A no-arg function that returns a list of
       `tf.keras.metrics.Metric` objects.
     client_weight_fn: An optional callable that takes the result of
-      `tff.learning.Model.report_local_outputs` from the model returned by
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].report_local_outputs` from the model returned by
       `model_builder`, and returns a scalar client weight. If `None`, defaults
       to the number of examples processed over all batches.
 
@@ -85,7 +85,7 @@ def from_flags(
 
   model_input_spec = input_spec
 
-  def tff_model_fn() -> tff.learning.Model:
+  def tff_model_fn() -> Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]:
     return tff.learning.from_keras_model(
         keras_model=model_builder(),
         input_spec=model_input_spec,

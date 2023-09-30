@@ -99,7 +99,7 @@ def get_stackoverflow_datasets(
     num_validation_examples: Number of elements to use for validation
 
   Returns:
-    stackoverflow_train: An instance of `tff.simulation.ClientData`
+    stackoverflow_train: An instance of `tff.simulation.datasets.ClientData`
       representing Stackoverflow data for training.
     stackoverflow_test: A split of the Stackoverflow data containing
       the test examples.

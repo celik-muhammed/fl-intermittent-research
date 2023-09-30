@@ -48,7 +48,7 @@ NONE_SERVER_TYPE = computation_types.FederatedType((), placements.SERVER)
 
 
 # Convenience type aliases.
-ModelBuilder = Callable[[], tff.learning.Model]
+ModelBuilder = Callable[[], Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]]
 OptimizerBuilder = Callable[[float], tf.keras.optimizers.Optimizer]
 ClientWeightFn = Callable[..., float]
 LRScheduleFn = Callable[[Union[int, tf.Tensor]], Union[tf.Tensor, float]]
@@ -112,7 +112,7 @@ def build_stateless_mean(
       initialize_fn=_empty_server_initialization, next_fn=stateless_mean)
 
 
-def _initialize_optimizer_vars(model: tff.learning.Model,
+def _initialize_optimizer_vars(model: Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel],
                                optimizer: tf.keras.optimizers.Optimizer):
   """Ensures variables holding the state of `optimizer` are created."""
   delta = tf.nest.map_structure(tf.zeros_like, _get_weights(model).trainable)
@@ -123,8 +123,8 @@ def _initialize_optimizer_vars(model: tff.learning.Model,
   assert optimizer.variables()
 
 
-def _get_weights(model: tff.learning.Model) -> tff.learning.ModelWeights:
-  return tff.learning.ModelWeights.from_model(model)
+def _get_weights(model: Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]) -> tff.learning.models.ModelWeights:
+  return tff.learning.models.ModelWeights.from_model(model)
 
 
 @attr.s(eq=False, frozen=True)
@@ -151,7 +151,7 @@ def server_update(model, server_optimizer, server_state, weights_delta):
   """Updates `server_state` based on `weights_delta`, increase the round number.
 
   Args:
-    model: A `tff.learning.Model`.
+    model: A `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]`.
     server_optimizer: A `tf.keras.optimizers.Optimizer`.
     server_state: A `ServerState`, the state to be updated.
     weights_delta: An update to the trainable variables of the model.
@@ -195,7 +195,7 @@ class ClientOutput(object):
   -   `client_weight`: Weight to be used in a weighted mean when
       aggregating `weights_delta`.
   -   `model_output`: A structure matching
-      `tff.learning.Model.report_local_outputs`, reflecting the results of
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].report_local_outputs`, reflecting the results of
       training on the input dataset.
   -   `optimizer_output`: Additional metrics or other outputs defined by the
       optimizer.
@@ -224,9 +224,9 @@ def create_client_update_fn():
     """Updates client model.
 
     Args:
-      model: A `tff.learning.Model`.
+      model: A `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]`.
       dataset: A 'tf.data.Dataset'.
-      initial_weights: A `tff.learning.ModelWeights` from server.
+      initial_weights: A `tff.learning.models.ModelWeights` from server.
       client_optimizer: A `tf.keras.optimizer.Optimizer` object.
       client_weight_fn: Optional function that takes the output of
         `model.report_local_outputs` and returns a tensor that provides the
@@ -288,7 +288,7 @@ def build_server_init_fn(
   `ServerState.round_num` is set to 0.0.
 
   Args:
-    model_fn: A no-arg function that returns a `tff.learning.Model`.
+    model_fn: A no-arg function that returns a `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]`.
     server_optimizer_fn: A no-arg function that returns a
       `tf.keras.optimizers.Optimizer`.
 
@@ -353,7 +353,7 @@ def build_fed_avg_process(
   """Builds the TFF computations for optimization using federated averaging.
 
   Args:
-    model_fn: A no-arg function that returns a `tff.learning.Model`.
+    model_fn: A no-arg function that returns a `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]`.
     client_optimizer_fn: A function that accepts a `learning_rate` keyword
       argument and returns a `tf.keras.optimizers.Optimizer` instance.
     client_lr: A scalar learning rate or a function that accepts a float
@@ -475,7 +475,7 @@ def build_fed_avg_process(
 
     Returns:
       A tuple of updated `ServerState` and the result of
-      `tff.learning.Model.federated_output_computation`.
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].federated_output_computation`.
     """
     return redefine_client_weight( losses_at_server, weights_at_server, effective_num_clients)
 
@@ -495,7 +495,7 @@ def build_fed_avg_process(
 
     Returns:
       A tuple of updated `ServerState` and the result of
-      `tff.learning.Model.federated_output_computation`.
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].federated_output_computation`.
     """
     client_model = tff.federated_broadcast(server_state.model)
     client_round_num = tff.federated_broadcast(server_state.round_num)

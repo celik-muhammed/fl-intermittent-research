@@ -195,7 +195,7 @@ class TrainingUtilsTest(tf.test.TestCase, parameterized.TestCase):
     state = iterative_process.initialize()
     test_dataset = create_tf_dataset_for_client(1)
 
-    reference_model = tff.learning.ModelWeights(
+    reference_model = tff.learning.models.ModelWeights(
         trainable=list(state.model.trainable),
         non_trainable=list(state.model.non_trainable))
 

@@ -248,9 +248,9 @@ class ConstructWordLevelDatasetsTest(tf.test.TestCase):
     # objects we desired are used.
     #
     # The correctness of the preprocessing function is tested in other tests.
-    mock_train = mock.create_autospec(tff.simulation.ClientData)
-    mock_validation = mock.create_autospec(tff.simulation.ClientData)
-    mock_test = mock.create_autospec(tff.simulation.ClientData)
+    mock_train = mock.create_autospec(tff.simulation.datasets.ClientData)
+    mock_validation = mock.create_autospec(tff.simulation.datasets.ClientData)
+    mock_test = mock.create_autospec(tff.simulation.datasets.ClientData)
     mock_test_dataset = mock.Mock()
     mock_test.create_tf_dataset_from_all_clients = mock.Mock(
         return_value=mock_test_dataset)
