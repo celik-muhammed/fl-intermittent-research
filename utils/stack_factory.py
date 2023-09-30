@@ -17,14 +17,15 @@ import collections
 from typing import Optional
 import tensorflow as tf
 
+
+import tensorflow_federated as tff
 from tensorflow_federated.python.aggregators import factory
 from tensorflow_federated.python.aggregators import sum_factory
 from tensorflow_federated.python.common_libs import py_typecheck
 from tensorflow_federated.python.common_libs import structure
-from tensorflow_federated.python.core.api import computation_types
-from tensorflow_federated.python.core.api import computations
-from tensorflow_federated.python.core.api import intrinsics
-from tensorflow_federated.python.core.api import placements
+from tensorflow_federated.python.core.impl.types import computation_types
+from tensorflow_federated.python.core.impl.federated_context import intrinsics
+from tensorflow_federated.python.core.impl.types import placements
 from tensorflow_federated.python.core.templates import aggregation_process
 from tensorflow_federated.python.core.templates import measured_process
 
@@ -123,14 +124,14 @@ class MeanFactory(factory.AggregationProcessFactory):
     value_sum_process = self._value_sum_factory.create(value_type)
     weight_sum_process = self._weight_sum_factory.create(weight_type)
 
-    @computations.federated_computation()
+    @tff.federated_computation()
     def init_fn():
       state = collections.OrderedDict(
           value_sum_process=value_sum_process.initialize(),
           weight_sum_process=weight_sum_process.initialize())
       return intrinsics.federated_zip(state)
 
-    @computations.federated_computation(
+    @tff.federated_computation(
         init_fn.type_signature.result,
         computation_types.FederatedType(value_type, placements.CLIENTS),
         computation_types.FederatedType(weight_type, placements.CLIENTS))

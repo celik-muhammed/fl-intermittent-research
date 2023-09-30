@@ -29,14 +29,15 @@ from typing import Callable, Optional, Union
 
 import attr
 import tensorflow as tf
+
+
 import tensorflow_federated as tff
-from tensorflow_federated.python.core.api import intrinsics
 from tensorflow_federated.python.tensorflow_libs import tensor_utils
-from tensorflow_federated.python.core.api import computations
-from tensorflow_federated.python.core.api import computation_base
-from tensorflow_federated.python.core.api import computation_types
-from tensorflow_federated.python.core.api import placements
-from tensorflow_federated.python.learning import model_utils
+from tensorflow_federated.python.core.impl.federated_context import intrinsics
+from tensorflow_federated.python.core.impl.computation import computation_base
+from tensorflow_federated.python.core.impl.types import computation_types
+from tensorflow_federated.python.core.impl.types import placements
+from tensorflow_federated.python.learning import models
 
 
 # Convenience type aliases.
@@ -220,7 +221,7 @@ def build_server_init_fn(
     A `tff.tf_computation` that returns initial `ServerState`.
   """
 
-  @computations.tf_computation
+  @tff.tf_computation
   def server_init_tf():
     server_optimizer = server_optimizer_fn()
     model = model_fn()
@@ -232,7 +233,7 @@ def build_server_init_fn(
     #     round_num=0.0, 
     #     delta_aggregate_state=aggregation_process.initialize())
 
-  @computations.federated_computation()
+  @tff.federated_computation()
   def initialize_computation():
     model = model_fn()
     initial_global_model, initial_global_optimizer_state = intrinsics.federated_eval(
@@ -287,7 +288,7 @@ def build_fed_avg_process(
 
   with tf.Graph().as_default():
     dummy_model = model_fn()
-    model_weights_type = model_utils.weights_type_from_model(
+    model_weights_type = models.weights_type_from_model(
         dummy_model)
     dummy_optimizer = server_optimizer_fn()
     _initialize_optimizer_vars(dummy_model, dummy_optimizer)

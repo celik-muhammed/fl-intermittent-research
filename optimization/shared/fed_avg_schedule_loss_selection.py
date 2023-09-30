@@ -30,19 +30,21 @@ from typing import Callable, Optional, Union
 import attr
 from absl import logging
 import tensorflow as tf
+import tensorflow_datasets as tfds
+
+
 import tensorflow_federated as tff
-from tensorflow_federated.python.core.api import intrinsics
+from tensorflow_federated.python.core.impl.federated_context import intrinsics
 from tensorflow_federated.python.tensorflow_libs import tensor_utils
 from tensorflow.python.ops import clip_ops
 from tensorflow_model_optimization.python.core.internal import tensor_encoding as te
 from tensorflow_federated.python.core.templates import measured_process
 from tensorflow_federated.python.core.impl.types import type_conversions
-from tensorflow_federated.python.core.api import computations
-from tensorflow_federated.python.core.api import computation_base
-from tensorflow_federated.python.core.api import computation_types
-from tensorflow_federated.python.core.api import placements
-from tensorflow_federated.python.learning import model_utils
-import tensorflow_datasets as tfds
+from tensorflow_federated.python.core.impl.computation import computation_base
+from tensorflow_federated.python.core.impl.types import computation_types
+from tensorflow_federated.python.core.impl.types import placements
+from tensorflow_federated.python.learning import models
+
 
 NONE_SERVER_TYPE = computation_types.FederatedType((), placements.SERVER)
 
@@ -53,7 +55,7 @@ OptimizerBuilder = Callable[[float], tf.keras.optimizers.Optimizer]
 ClientWeightFn = Callable[..., float]
 LRScheduleFn = Callable[[Union[int, tf.Tensor]], Union[tf.Tensor, float]]
 
-@computations.federated_computation()
+@tff.federated_computation()
 def _empty_server_initialization():
   return intrinsics.federated_value([], placements.SERVER)
 
@@ -97,7 +99,7 @@ def build_stateless_mean(
 ) -> measured_process.MeasuredProcess:
   """Builds a `MeasuredProcess` that wraps` tff.federated_mean`."""
 
-  @computations.federated_computation(
+  @tff.federated_computation(
       NONE_SERVER_TYPE,
       computation_types.FederatedType(model_delta_type, placements.CLIENTS),
       computation_types.FederatedType(tf.float32, placements.CLIENTS))
@@ -296,7 +298,7 @@ def build_server_init_fn(
     A `tff.tf_computation` that returns initial `ServerState`.
   """
 
-  @computations.tf_computation()
+  @tff.tf_computation()
   def server_init_tf():
     server_optimizer = server_optimizer_fn()
     model = model_fn()
@@ -304,12 +306,12 @@ def build_server_init_fn(
     return _get_weights(model), server_optimizer.variables(),
 
 
-  @computations.tf_computation()
+ @tff.tf_computation()
   def get_effective_num_clients():
     return tf.constant(effective_num_clients, dtype=tf.int32)
    
 
-  @computations.federated_computation()
+  @tff.federated_computation()
   def initialize_computation():
     model = model_fn()
     initial_global_model, initial_global_optimizer_state = intrinsics.federated_eval(
@@ -381,7 +383,7 @@ def build_fed_avg_process(
 
   with tf.Graph().as_default():
     dummy_model = model_fn()
-    model_weights_type = model_utils.weights_type_from_model(
+    model_weights_type = models.weights_type_from_model(
         dummy_model)
     dummy_optimizer = server_optimizer_fn()
     _initialize_optimizer_vars(dummy_model, dummy_optimizer)
@@ -427,7 +429,7 @@ def build_fed_avg_process(
         delta_aggregate_state=aggregation_state,
         )
 
-  # @computations.tf_computation(clients_weights_type)
+  #@tff.tf_computation(clients_weights_type)
   # def get_zero_weights_all_clients(weights):
   #   return tf.zeros_like(weights, dtype=tf.float32)
 
@@ -510,7 +512,7 @@ def build_fed_avg_process(
     #LOSS SELECTION:
     # losses_at_server = tff.federated_collect(client_outputs.model_output)
     # weights_at_server = tff.federated_collect(client_weight)
-    @computations.tf_computation
+   @tff.tf_computation
     def zeros_fn():
       return tf.zeros(shape=[total_clients,1] , dtype=tf.float32)
 
@@ -519,14 +521,14 @@ def build_fed_avg_process(
     at_server_type = tff.TensorType(shape=[total_clients,1],dtype=tf.float32)
     # list_type = tff.SequenceType( tff.TensorType(dtype=tf.float32))
     client_output_type = client_update_fn.type_signature.result
-    @computations.tf_computation(at_server_type, client_output_type)
+   @tff.tf_computation(at_server_type, client_output_type)
     def accumulate_weight(u,t):
       value = t.client_weight
       index = t.client_id
       new_u = tf.tensor_scatter_nd_update(u,index,value)  
       return new_u
 
-    @computations.tf_computation(at_server_type, client_output_type)
+   @tff.tf_computation(at_server_type, client_output_type)
     def accumulate_loss(u,t):
       value = tf.reshape(tf.math.reduce_sum(t.model_output['loss']), shape = [1,1])
       index = t.client_id

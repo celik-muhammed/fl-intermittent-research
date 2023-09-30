@@ -1,21 +1,16 @@
-import collections
-import tensorflow as tf
-import tensorflow_federated as tff
-from tensorflow_federated.python.learning import model_utils
-from tensorflow_federated.python.common_libs import py_typecheck
-
-import numpy as np
 import attr
-
-from typing import Callable
-
-from tensorflow_federated.python.learning import model as model_lib
-from tensorflow_federated.python.learning import model_utils
-
+import collections
+import numpy as np
+import tensorflow as tf
+from typing import Callable, Union
 
 
+import tensorflow_federated as tff
+from tensorflow_federated.python.common_libs import py_typecheck
+from tensorflow_federated.python.learning import models
 
-_ModelConstructor = Callable[[], model_lib.Model]
+
+_ModelConstructor = Callable[[], models.Model]
 
 def weights_type_from_model_fn(
     model_fn: _ModelConstructor):
@@ -26,7 +21,7 @@ def weights_type_from_model_fn(
   # actually running TF code.
   with tf.Graph().as_default():
     model = model_fn()
-    model_weights_type = model_utils.weights_type_from_model(model)
+    model_weights_type = models.weights_type_from_model(model)
   return model_weights_type.trainable
 
 
