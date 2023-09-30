@@ -38,7 +38,7 @@ def _uncompiled_model_fn():
   keras_model = tff.simulation.models.mnist.create_keras_model(
       compile_model=False)
   input_spec = _create_input_spec()
-  return tff.learning.from_keras_model(
+  return tff.learning.models.keras_utils.from_keras_model(
       keras_model=keras_model,
       input_spec=input_spec,
       loss=tf.keras.losses.SparseCategoricalCrossentropy())

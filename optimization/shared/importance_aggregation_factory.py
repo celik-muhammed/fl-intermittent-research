@@ -10,21 +10,20 @@ from tensorflow_federated.python.common_libs import py_typecheck
 from tensorflow_federated.python.learning import models
 
 
-_ModelConstructor = Callable[[], models.Model]
+_ModelConstructor = Callable[[], Union[models.FunctionalModel, models.ReconstructionModel, models.VariableModel]]
 
-def weights_type_from_model_fn(
-    model_fn: _ModelConstructor):
-  py_typecheck.check_callable(model_fn)
+def weights_type_from_model_fn(model_fn: _ModelConstructor):
+  if not callable(model_fn):
+      raise TypeError("model_fn must be callable")
+
   # This graph and the ones below are introduced in order to ensure that these
   # TF invocations don't leak into the global graph. In the future, it would
   # be nice if we were able to access the structure of `weights` without ever
   # actually running TF code.
   with tf.Graph().as_default():
-    model = model_fn()
-    model_weights_type = models.weights_type_from_model(model)
+      model = model_fn()
+      model_weights_type = models.weights_type_from_model(model)
   return model_weights_type.trainable
-
-
 
 
 @tff.tf_computation()

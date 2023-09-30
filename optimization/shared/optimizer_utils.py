@@ -15,7 +15,7 @@
 
 import collections
 import inspect
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Type, TypeVar, Callable, Dict, List, Optional
 
 from absl import flags
 from absl import logging
@@ -108,7 +108,7 @@ def define_optimizer_flags(prefix: str) -> None:
               isinstance(param.default, typ))
 
     for param in constructor_params:
-      if param.name in ['kwargs', 'args', 'learning_rate']:
+      if param.name in ['kwargs', 'args', 'learning_rate', 'learning_rate']:
         continue
 
       if is_param_of_type(param, bool):

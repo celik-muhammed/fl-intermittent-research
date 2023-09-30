@@ -42,7 +42,7 @@ def _create_input_spec():
 def _uncompiled_model_builder():
   keras_model = tff.simulation.models.mnist.create_keras_model(
       compile_model=False)
-  return tff.learning.from_keras_model(
+  return tff.learning.models.keras_utils.from_keras_model(
       keras_model=keras_model,
       input_spec=_create_input_spec(),
       loss=tf.keras.losses.SparseCategoricalCrossentropy())

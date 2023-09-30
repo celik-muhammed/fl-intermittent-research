@@ -14,7 +14,7 @@
 """Federated CIFAR-100 classification library using TFF."""
 
 import functools
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from absl import logging
 import numpy as np
@@ -119,7 +119,7 @@ def run_federated(
   metrics_builder = lambda: [tf.keras.metrics.SparseCategoricalAccuracy()]
 
   def tff_model_fn() -> Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]:
-    return tff.learning.from_keras_model(
+    return tff.learning.models.keras_utils.from_keras_model(
         keras_model=model_builder(),
         input_spec=input_spec,
         loss=loss_builder(),

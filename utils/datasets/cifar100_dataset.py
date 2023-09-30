@@ -13,7 +13,7 @@
 # limitations under the License.
 """Library for loading and preprocessing CIFAR-100 training and testing data."""
 
-import collections
+import collections.abc
 import functools
 from typing import Optional, Tuple
 
@@ -65,7 +65,7 @@ def get_federated_cifar100(client_epochs_per_round,
   Returns:
     A tuple of `tff.simulation.datasets.ClientData` and `tf.data.Datset` objects.
   """
-  if not isinstance(crop_shape, collections.Iterable):
+  if not isinstance(crop_shape, collections.abc.Iterable):
     raise TypeError(
         'Argument crop_shape must be an iterable.')
   crop_shape = tuple(crop_shape)

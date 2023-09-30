@@ -13,7 +13,7 @@
 # limitations under the License.
 """Baseline experiment on centralized CIFAR-100 data."""
 
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping, Optional, Union
 
 import tensorflow as tf
 

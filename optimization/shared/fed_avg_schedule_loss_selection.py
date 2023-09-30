@@ -306,7 +306,7 @@ def build_server_init_fn(
     return _get_weights(model), server_optimizer.variables(),
 
 
- @tff.tf_computation()
+  @tff.tf_computation()
   def get_effective_num_clients():
     return tf.constant(effective_num_clients, dtype=tf.int32)
    
@@ -512,7 +512,7 @@ def build_fed_avg_process(
     #LOSS SELECTION:
     # losses_at_server = tff.federated_collect(client_outputs.model_output)
     # weights_at_server = tff.federated_collect(client_weight)
-   @tff.tf_computation
+    @tff.tf_computation
     def zeros_fn():
       return tf.zeros(shape=[total_clients,1] , dtype=tf.float32)
 
@@ -521,14 +521,14 @@ def build_fed_avg_process(
     at_server_type = tff.TensorType(shape=[total_clients,1],dtype=tf.float32)
     # list_type = tff.SequenceType( tff.TensorType(dtype=tf.float32))
     client_output_type = client_update_fn.type_signature.result
-   @tff.tf_computation(at_server_type, client_output_type)
+    @tff.tf_computation(at_server_type, client_output_type)
     def accumulate_weight(u,t):
       value = t.client_weight
       index = t.client_id
       new_u = tf.tensor_scatter_nd_update(u,index,value)  
       return new_u
 
-   @tff.tf_computation(at_server_type, client_output_type)
+    @tff.tf_computation(at_server_type, client_output_type)
     def accumulate_loss(u,t):
       value = tf.reshape(tf.math.reduce_sum(t.model_output['loss']), shape = [1,1])
       index = t.client_id

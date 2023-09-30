@@ -184,7 +184,7 @@ class TrainingUtilsTest(tf.test.TestCase, parameterized.TestCase):
     metrics_builder = lambda: [tf.keras.metrics.MeanSquaredError()]
 
     def tff_model_fn():
-      return tff.learning.from_keras_model(
+      return tff.learning.models.keras_utils.from_keras_model(
           keras_model=model_builder(),
           input_spec=get_input_spec(),
           loss=loss_builder(),
