@@ -218,7 +218,7 @@ class ModelDeltaProcessTest(tf.test.TestCase):
 
     server_state_type = tff.FederatedType(
         fed_avg_schedule.ServerState(
-            model=tff.framework.type_from_tensors(
+            model=tff.types.type_from_tensors(
                 tff.learning.models.ModelWeights(
                     test_model_for_types.trainable_variables,
                     test_model_for_types.non_trainable_variables)),

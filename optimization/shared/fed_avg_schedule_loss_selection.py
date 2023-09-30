@@ -162,9 +162,9 @@ def server_update(model, server_optimizer, server_state, weights_delta):
     An updated `ServerState`.
   """
   model_weights = _get_weights(model)
-  tff.utils.assign(model_weights, server_state.model)
+  tff.learning.models.ModelWeights(model_weights, server_state.model)
   # Server optimizer variables must be initialized prior to invoking this
-  tff.utils.assign(server_optimizer.variables(), server_state.optimizer_state)
+  tff.learning.models.ModelWeights(server_optimizer.variables(), server_state.optimizer_state)
 
   weights_delta, has_non_finite_weight = (
       tensor_utils.zero_all_if_any_non_finite(weights_delta))
@@ -240,7 +240,7 @@ def create_client_update_fn():
     """
 
     model_weights = _get_weights(model)
-    tff.utils.assign(model_weights, initial_weights)
+    tff.learning.models.ModelWeights(model_weights, initial_weights)
 
     num_examples = tf.constant(0, dtype=tf.int32)
     for batch in dataset:

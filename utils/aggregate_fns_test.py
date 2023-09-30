@@ -34,7 +34,7 @@ class FixedClipNormProcessTest(tf.test.TestCase):
   def test_clip_by_global_norm(self):
     clip_norm = 20.0
     test_deltas = [create_weights_delta(), create_weights_delta(constant=10)]
-    update_type = tff.framework.type_from_tensors(test_deltas[0])
+    update_type = tff.types.type_from_tensors(test_deltas[0])
     aggregate_fn = aggregate_fns.build_fixed_clip_norm_mean_process(
         clip_norm=clip_norm, model_update_type=update_type)
 

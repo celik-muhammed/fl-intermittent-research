@@ -95,9 +95,9 @@ def server_update(model, server_optimizer, server_state, weights_delta):
     An updated `ServerState`.
   """
   model_weights = _get_weights(model)
-  tff.utils.assign(model_weights, server_state.model)
+  tff.learning.models.ModelWeights(model_weights, server_state.model)
   # Server optimizer variables must be initialized prior to invoking this
-  tff.utils.assign(server_optimizer.variables(), server_state.optimizer_state)
+  tff.learning.models.ModelWeights(server_optimizer.variables(), server_state.optimizer_state)
 
   weights_delta, has_non_finite_weight = (
       tensor_utils.zero_all_if_any_non_finite(weights_delta))
@@ -167,7 +167,7 @@ def create_client_update_fn():
     """
 
     model_weights = _get_weights(model)
-    tff.utils.assign(model_weights, initial_weights)
+    tff.learning.models.ModelWeights(model_weights, initial_weights)
 
     num_examples = tf.constant(0, dtype=tf.int32)
     for batch in dataset:
@@ -292,7 +292,7 @@ def build_fed_avg_process(
         dummy_model)
     dummy_optimizer = server_optimizer_fn()
     _initialize_optimizer_vars(dummy_model, dummy_optimizer)
-    optimizer_variable_type = tff.framework.type_from_tensors(
+    optimizer_variable_type = tff.types.type_from_tensors(
         dummy_optimizer.variables())    
 
   initialize_computation = build_server_init_fn(
@@ -300,7 +300,7 @@ def build_fed_avg_process(
       # Initialize with the learning rate for round zero.
       server_optimizer_fn = lambda: server_optimizer_fn(server_lr_schedule(0)),
       aggregation_process = aggregation_process)
-  #model_weights_type = tff.framework.type_from_tensors(_get_weights(dummy_model).trainable)
+  #model_weights_type = tff.types.type_from_tensors(_get_weights(dummy_model).trainable)
   round_num_type = tf.float32
 
   tf_dataset_type = tff.SequenceType(dummy_model.input_spec)

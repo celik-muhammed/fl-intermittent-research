@@ -108,7 +108,9 @@ def define_optimizer_flags(prefix: str) -> None:
               isinstance(param.default, typ))
 
     for param in constructor_params:
-      if param.name in ['kwargs', 'args', 'learning_rate', 'learning_rate']:
+      if param.name in ['kwargs', 'args', 'learning_rate', 'weight_decay', 
+      'global_clipnorm', 'clipnorm', 'clipvalue', 'ema_overwrite_frequency', 
+      'exclude_from_weight_decay', 'exclude_from_layer_adaptation']:
         continue
 
       if is_param_of_type(param, bool):
