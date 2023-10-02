@@ -129,16 +129,16 @@ class ClientOutput(object):
       variables.
   -   `client_weight`: Weight to be used in a weighted mean when
       aggregating `weights_delta`.
+  -   `optimizer_output`: Additional metrics or other outputs defined by the
+      optimizer.
   -   `model_output`: A structure matching
       `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].report_local_outputs`, reflecting the results of
       training on the input dataset.
-  -   `optimizer_output`: Additional metrics or other outputs defined by the
-      optimizer.
   """
   weights_delta = attr.ib()
   client_weight = attr.ib()
-  model_output = attr.ib()
   optimizer_output = attr.ib()
+  # model_output = attr.ib()
 
 
 def create_client_update_fn():
@@ -178,10 +178,13 @@ def create_client_update_fn():
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
 
-    aggregated_outputs = model.report_local_outputs()
-    weights_delta = tf.nest.map_structure(lambda a, b: a - b,
-                                          model_weights.trainable,
-                                          initial_weights.trainable)
+    
+    weights_delta = tff.learning.ModelWeights(
+        trainable=tf.nest.map_structure(lambda a, b: a - b, 
+                                        model_weights.trainable, 
+                                        initial_weights.trainable),
+        non_trainable=tf.constant(0.0))
+    
     weights_delta, has_non_finite_weight = (
         tensor_utils.zero_all_if_any_non_finite(weights_delta))
 
@@ -189,14 +192,11 @@ def create_client_update_fn():
       client_weight = tf.constant(0, dtype=tf.float32)
     else:
       client_weight = tf.constant(1, dtype=tf.float32)
-    #elif client_weight_fn is None:
-      #client_weight = tf.cast(num_examples, dtype=tf.float32)
-    #else:
-      #client_weight = client_weight_fn(aggregated_outputs)
 
+    optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
+    
     return ClientOutput(
-        weights_delta, client_weight, aggregated_outputs,
-        collections.OrderedDict([('num_examples', num_examples)]))
+        weights_delta, client_weight, optimizer_output)
 
   return client_update
 

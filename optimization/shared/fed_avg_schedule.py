@@ -128,8 +128,8 @@ class ClientOutput(object):
   """
   weights_delta = attr.ib()
   client_weight = attr.ib()
-  model_output = attr.ib()
   optimizer_output = attr.ib()
+  # model_output = attr.ib()
 
 
 def create_client_update_fn():
@@ -144,8 +144,7 @@ def create_client_update_fn():
   def client_update(model,
                     dataset,
                     initial_weights,
-                    client_optimizer,
-                    client_weight_fn=None):
+                    client_optimizer):
     """Updates client model.
 
     Args:
@@ -153,10 +152,6 @@ def create_client_update_fn():
       dataset: A 'tf.data.Dataset'.
       initial_weights: A `tff.learning.models.ModelWeights` from server.
       client_optimizer: A `tf.keras.optimizer.Optimizer` object.
-      client_weight_fn: Optional function that takes the output of
-        `model.report_local_outputs` and returns a tensor that provides the
-        weight in the federated average of model deltas. If not provided, the
-        default is the total number of examples processed on device.
 
     Returns:
       A 'ClientOutput`.
@@ -174,23 +169,25 @@ def create_client_update_fn():
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
 
-    aggregated_outputs = model.report_local_outputs()
-    weights_delta = tf.nest.map_structure(lambda a, b: a - b,
-                                          model_weights.trainable,
-                                          initial_weights.trainable)
+    
+    weights_delta = tff.learning.ModelWeights(
+        trainable=tf.nest.map_structure(lambda a, b: a - b, 
+                                        model_weights.trainable, 
+                                        initial_weights.trainable),
+        non_trainable=tf.constant(0.0))
+    
     weights_delta, has_non_finite_weight = (
         tensor_utils.zero_all_if_any_non_finite(weights_delta))
 
     if has_non_finite_weight > 0:
       client_weight = tf.constant(0, dtype=tf.float32)
-    elif client_weight_fn is None:
-      client_weight = tf.cast(num_examples, dtype=tf.float32)
     else:
-      client_weight = client_weight_fn(aggregated_outputs)
+      client_weight = tf.constant(1, dtype=tf.float32)
 
+    optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
+    
     return ClientOutput(
-        weights_delta, client_weight, aggregated_outputs,
-        collections.OrderedDict([('num_examples', num_examples)]))
+        weights_delta, client_weight, optimizer_output)
 
   return client_update
 
