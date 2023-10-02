@@ -14,7 +14,7 @@
 """Federated EMNIST autoencoder library using TFF."""
 
 import functools
-from typing import Callable, Optional
+from typing import Any, Union, Callable, Optional
 
 from absl import logging
 import tensorflow as tf

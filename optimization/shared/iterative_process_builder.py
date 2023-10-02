@@ -18,7 +18,7 @@ rate schedules directly. For more details on the learning rate scheduling
 functions, see optimizer_utils.py.
 """
 
-from typing import Callable, List, Optional
+from typing import Any, Union, Callable, Optional
 
 from absl import flags
 import tensorflow as tf

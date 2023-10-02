@@ -15,7 +15,8 @@
 
 import collections
 import functools
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+from typing import Any, Union, Callable, Optional
+from typing import Dict, List, Sequence
 
 from absl import logging
 import numpy as np

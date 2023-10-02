@@ -24,7 +24,8 @@ The new features in federated shampoo optimizer:
 """
 
 import functools
-from typing import Sequence, List, Optional, Tuple, Union
+from typing import Any, Union, Callable, Optional
+from typing import Sequence, List, Tuple, Union
 
 import numpy as np
 import tensorflow as tf

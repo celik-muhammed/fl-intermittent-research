@@ -21,7 +21,7 @@ iterative process, see `shared/fed_avg_schedule.py`.
 """
 
 import collections
-from typing import Any, Callable, Optional, Union
+from typing import Any, Union, Callable, Optional
 
 from absl import app
 from absl import flags

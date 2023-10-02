@@ -25,7 +25,7 @@ Communication-Efficient Learning of Deep Networks from Decentralized Data
 """
 
 import collections
-from typing import Callable, Optional, Union
+from typing import Any, Union, Callable, Optional
 
 import attr
 import tensorflow as tf

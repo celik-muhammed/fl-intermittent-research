@@ -22,7 +22,7 @@ https://github.com/tensorflow/addons/blob/v0.10.0/tensorflow_addons/optimizers/l
 """
 
 import re
-from typing import List, Optional, Union
+from typing import Any, Union, Callable, Optional
 
 import numpy as np
 import tensorflow as tf

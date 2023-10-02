@@ -14,7 +14,7 @@
 """Federated CIFAR-100 classification library using TFF."""
 
 import functools
-from typing import Callable, Optional, Union
+from typing import Any, Union, Callable, Optional
 
 from absl import logging
 import numpy as np

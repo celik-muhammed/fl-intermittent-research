@@ -23,7 +23,8 @@ import os.path
 import shutil
 import subprocess
 import tempfile
-from typing import Dict, Iterable, Iterator, List, Mapping, Optional, Sequence, Union
+from typing import Any, Union, Callable, Optional
+from typing import Dict, Iterable, Iterator, List, Mapping, Sequence
 
 from absl import flags
 from absl import logging

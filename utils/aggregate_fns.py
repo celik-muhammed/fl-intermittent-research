@@ -17,7 +17,7 @@ Intended for usage with the `tff.learning` API for composing different
 communication primitives in federated learning.
 """
 
-from typing import Union
+from typing import Any, Union, Callable, Optional
 
 import attr
 import tensorflow as tf
