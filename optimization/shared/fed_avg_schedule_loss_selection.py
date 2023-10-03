@@ -196,17 +196,19 @@ class ClientOutput(object):
       variables.
   -   `client_weight`: Weight to be used in a weighted mean when
       aggregating `weights_delta`.
+  -   `optimizer_output`: Additional metrics or other outputs defined by the
+      optimizer.
+      
   -   `model_output`: A structure matching
       `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].report_local_outputs`, reflecting the results of
       training on the input dataset.
-  -   `optimizer_output`: Additional metrics or other outputs defined by the
-      optimizer.
   """
   weights_delta = attr.ib()
   client_weight = attr.ib()
   optimizer_output = attr.ib()
-  # model_output = attr.ib()
   client_id = attr.ib()
+  # model_output = attr.ib()
+
 
 def create_client_update_fn():
   """Returns a tf.function for the client_update.
@@ -220,7 +222,9 @@ def create_client_update_fn():
   def client_update(model,
                     dataset,
                     initial_weights,
-                    client_optimizer):
+                    client_optimizer,
+                    client_weight_fn=None,
+                    client_id=None):
     """Updates client model.
 
     Args:
@@ -228,6 +232,10 @@ def create_client_update_fn():
       dataset: A 'tf.data.Dataset'.
       initial_weights: A `tff.learning.models.ModelWeights` from server.
       client_optimizer: A `tf.keras.optimizer.Optimizer` object.
+      client_weight_fn: Optional function that takes the output of
+        `model.report_local_outputs` and returns a tensor that provides the
+        weight in the federated average of model deltas. If not provided, the
+        default is the total number of examples processed on device.
 
     Returns:
       A 'ClientOutput`.
@@ -245,25 +253,25 @@ def create_client_update_fn():
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
 
+    optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
     
-    weights_delta = tff.learning.ModelWeights(
-        trainable=tf.nest.map_structure(lambda a, b: a - b, 
-                                        model_weights.trainable, 
-                                        initial_weights.trainable),
-        non_trainable=tf.constant(0.0))
-    
+    weights_delta = tf.nest.map_structure(lambda a, b: a - b,
+                                          model_weights.trainable,
+                                          initial_weights.trainable)
     weights_delta, has_non_finite_weight = (
         tensor_utils.zero_all_if_any_non_finite(weights_delta))
 
     if has_non_finite_weight > 0:
       client_weight = tf.constant(0, dtype=tf.float32)
+    elif client_weight_fn is None:
+      client_weight = tf.cast(num_examples, dtype=tf.float32)
     else:
+      # aggregated_outputs = model.report_local_outputs()
+      # client_weight = client_weight_fn(aggregated_outputs)
       client_weight = tf.constant(1, dtype=tf.float32)
-
-    optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
     
     return ClientOutput(
-        weights_delta, client_weight, optimizer_output)
+        weights_delta, client_weight, optimizer_output, client_id)
 
   return client_update
 
@@ -439,7 +447,7 @@ def build_fed_avg_process(
     client_optimizer = client_optimizer_fn(client_lr)
     client_update = create_client_update_fn()
     return client_update(model_fn(), tf_dataset, initial_model_weights,
-                         client_optimizer,client_id,client_weight_fn)
+                         client_optimizer,client_weight_fn,client_id)
 
   @tff.tf_computation(server_state_type, model_weights_type.trainable)
   def server_update_fn(server_state, model_delta):
