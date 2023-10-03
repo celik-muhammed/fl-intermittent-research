@@ -198,7 +198,7 @@ class ClientOutput(object):
       aggregating `weights_delta`.
   -   `optimizer_output`: Additional metrics or other outputs defined by the
       optimizer.
-      
+
   -   `model_output`: A structure matching
       `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].report_local_outputs`, reflecting the results of
       training on the input dataset.
@@ -392,13 +392,14 @@ def build_fed_avg_process(
   if aggregation_process is None:
     aggregation_process = build_stateless_mean(
         model_delta_type=model_weights_type.trainable)
-  if not _is_valid_aggregation_process(aggregation_process):
-    raise ProcessTypeError(
-        'aggregation_process type signature does not conform to expected '
-        'signature (<state@S, input@C> -> <state@S, result@S, measurements@S>).'
-        ' Got: {t}'.format(t=aggregation_process.next.type_signature))
     
-
+  if not _is_valid_aggregation_process(aggregation_process):
+    expected_signature = '(<state@S, input@C> -> <state@S, result@S, measurements@S>)'
+    actual_signature = str(aggregation_process.next.type_signature)
+    raise TypeError(
+        f'aggregation_process type signature does not conform to expected '
+        f'signature {expected_signature}.'
+        ' Got: {t}'.format(t=actual_signature))
   
   initialize_computation = build_server_init_fn(
         model_fn = model_fn,
@@ -410,15 +411,12 @@ def build_fed_avg_process(
   # server_state_type = initialize_computation.type_signature.result
   # model_weights_type = server_state_type.model
   round_num_type = tf.float32
-
   tf_dataset_type = tff.SequenceType(dummy_model.input_spec)
   model_input_type = tff.SequenceType(dummy_model.input_spec)
 
   client_losses_at_server_type = tff.TensorType(dtype=tf.float32, shape=[total_clients,1])
   clients_weights_at_server_type = tff.TensorType(dtype=tf.float32, shape=[total_clients,1])
-
   aggregation_state = aggregation_process.initialize.type_signature.result.member
-
 
   server_state_type = ServerState(
         model=model_weights_type,
