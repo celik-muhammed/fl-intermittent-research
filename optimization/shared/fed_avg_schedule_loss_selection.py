@@ -274,8 +274,7 @@ def create_client_update_fn():
       
     optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
 
-    return ClientOutput(
-        weights_delta, client_weight,  model_output, optimizer_output, client_id)
+    return ClientOutput(weights_delta, client_weight,  model_output, optimizer_output, client_id)
 
   return client_update
 
