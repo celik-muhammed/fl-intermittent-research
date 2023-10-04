@@ -263,7 +263,7 @@ def create_client_update_fn():
     # Initialize aggregated_outputs as empty tensors or values
     aggregated_loss = tf.constant(0.0, dtype=tf.float32)
     aggregated_num_examples = tf.constant(0, dtype=tf.int32)
-    aggregated_predictions = None  # Initialize with None
+    aggregated_predictions = tf.constant(0.0, dtype=tf.float32)
 
     num_examples = tf.constant(0, dtype=tf.int32)
     for batch in dataset:
@@ -278,15 +278,21 @@ def create_client_update_fn():
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
 
-      # Initialize aggregated_predictions shape based on the first run
-      if aggregated_predictions is None and output.predictions.shape is not None:
-          # Initialize with zeros with the same shape as output.predictions
-          aggregated_predictions = np.zeros(output.predictions.shape, dtype=output.predictions.dtype)
-      
       # Accumulate loss, predictions, and num_examples
       aggregated_loss += output.loss
       aggregated_num_examples += tf.shape(output.predictions)[0]
-      aggregated_predictions = np.concatenate((aggregated_predictions, output.predictions), axis=0)
+      try:
+        # Check if the shape of output.predictions is not None
+        if output.predictions.shape is not None and len(output.predictions.shape) > 0:            
+          # Attempt to initialize aggregated_predictions with zeros with the same shape as output.predictions
+          if aggregated_predictions.shape != output.predictions.shape:
+              aggregated_predictions = np.zeros(output.predictions.shape, dtype=output.predictions.dtype)
+
+          # concatenate
+          aggregated_predictions = np.concatenate((aggregated_predictions, output.predictions), axis=0)
+      except Exception as e:
+        # Handle the exception (e.g., print a message, log the error, etc.)
+        print(f"An exception occurred: {e}")
 
     # Now, aggregated_outputs contains the accumulated values
     # Calculate the mean loss over all batches
