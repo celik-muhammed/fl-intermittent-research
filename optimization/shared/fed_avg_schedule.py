@@ -326,8 +326,8 @@ def build_fed_avg_process(
     server_state = tff.federated_map(server_update_fn,
                                      (server_state, model_delta))
 
-    aggregated_outputs = dummy_model.metric_finalizers(
-        client_outputs.model_output)
+    aggregated_outputs = dummy_model.metric_finalizers() # client_outputs.model_output
+
     if aggregated_outputs.type_signature.is_struct():
       aggregated_outputs = tff.federated_zip(aggregated_outputs)
 
