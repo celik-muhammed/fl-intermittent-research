@@ -310,7 +310,7 @@ def build_fed_avg_process(
 
     Returns:
       A tuple of updated `ServerState` and the result of
-      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].federated_output_computation`.
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].metric_finalizers`.
     """
     client_model = tff.federated_broadcast(server_state.model)
     client_round_num = tff.federated_broadcast(server_state.round_num)
@@ -326,7 +326,7 @@ def build_fed_avg_process(
     server_state = tff.federated_map(server_update_fn,
                                      (server_state, model_delta))
 
-    aggregated_outputs = dummy_model.federated_output_computation(
+    aggregated_outputs = dummy_model.metric_finalizers(
         client_outputs.model_output)
     if aggregated_outputs.type_signature.is_struct():
       aggregated_outputs = tff.federated_zip(aggregated_outputs)

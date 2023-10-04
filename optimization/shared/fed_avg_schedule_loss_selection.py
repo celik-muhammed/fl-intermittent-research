@@ -437,7 +437,7 @@ def build_fed_avg_process(
   # def federated_output(local_outputs):
   #   return federated_aggregate_keras_metric(self.get_metrics(), local_outputs)
 
-  # federated_output_computation = computations.federated_computation(
+  # metric_finalizers = computations.federated_computation(
   #       federated_output, federated_local_outputs_type)
 
 
@@ -477,7 +477,7 @@ def build_fed_avg_process(
 
     Returns:
       A tuple of updated `ServerState` and the result of
-      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].federated_output_computation`.
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].metric_finalizers`.
     """
     return redefine_client_weight( losses_at_server, weights_at_server, effective_num_clients)
 
@@ -497,7 +497,7 @@ def build_fed_avg_process(
 
     Returns:
       A tuple of updated `ServerState` and the result of
-      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].federated_output_computation`.
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].metric_finalizers`.
     """
     client_model = tff.federated_broadcast(server_state.model)
     client_round_num = tff.federated_broadcast(server_state.round_num)
@@ -562,7 +562,7 @@ def build_fed_avg_process(
                                      (server_state, 
                                       aggregation_output.result))
 
-    aggregated_outputs = dummy_model.federated_output_computation(
+    aggregated_outputs = dummy_model.metric_finalizers(
         client_outputs.model_output)
     if aggregated_outputs.type_signature.is_struct():
       aggregated_outputs = tff.federated_zip(aggregated_outputs)
