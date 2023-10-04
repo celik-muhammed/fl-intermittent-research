@@ -174,7 +174,7 @@ def run_federated(
   def client_weight_fn(local_outputs):
     # Num_tokens is a tensor with type int64[1], to use as a weight need
     # a float32 scalar.
-    return tf.cast(tf.squeeze(local_outputs.num_tokens), tf.float32)
+    return tf.cast(tf.squeeze(local_outputs['num_tokens']), tf.float32)
 
   training_process = iterative_process_builder(
       tff_model_fn, client_weight_fn=client_weight_fn)

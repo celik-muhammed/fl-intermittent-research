@@ -142,7 +142,7 @@ def run_federated(
   def client_weight_fn(local_outputs):
     # Num_tokens is a tensor with type int64[1], to use as a weight need
     # a float32 scalar.
-    return tf.cast(tf.squeeze(local_outputs.num_tokens), tf.float32)
+    return tf.cast(tf.squeeze(local_outputs['num_tokens']), tf.float32)
 
   def tff_model_fn() -> Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel]:
     return tff.learning.models.keras_utils.from_keras_model(

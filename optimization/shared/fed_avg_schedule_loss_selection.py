@@ -180,7 +180,7 @@ def server_update(model, server_optimizer, server_state, weights_delta):
   server_optimizer.apply_gradients(grads_and_vars)
 
   # Create a new state based on the updated model.
-  return tff.utils.update_state(
+  return tff.structure.update_struct(
       server_state,
       model=model_weights,
       optimizer_state=server_optimizer.variables(),
@@ -254,7 +254,7 @@ def create_client_update_fn():
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
 
-    aggregated_outputs = model.report_local_unfinalized_metrics()
+    model_output = aggregated_outputs = model.report_local_unfinalized_metrics()
 
     weights_delta = tf.nest.map_structure(lambda a, b: a - b,
                                           model_weights.trainable,
@@ -272,11 +272,10 @@ def create_client_update_fn():
 
     #weights_delta_encoded = tf.nest.map_structure(mean_encoder_fn, weights_delta)
       
-    # optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
+    optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
 
     return ClientOutput(
-        weights_delta, client_weight,  aggregated_outputs,
-        collections.OrderedDict([('num_examples', num_examples)]), client_id)
+        weights_delta, client_weight,  model_output, optimizer_output, client_id)
 
   return client_update
 
@@ -539,8 +538,8 @@ def build_fed_avg_process(
 
     # output_at_server= tff.federated_collect(client_outputs)
     
-    weights_at_server = tff.federated_reduce(client_outputs, zero, accumulate_weight)
-    losses_at_server = tff.federated_reduce(client_outputs, zero, accumulate_loss)
+    weights_at_server = tff.federated_aggregate(client_outputs, zero, accumulate_weight)
+    losses_at_server = tff.federated_aggregate(client_outputs, zero, accumulate_loss)
     #losses_at_server = tff.federated_aggregate(client_outputs.model_output, zero, accumulate, merge, report)
 
     selected_clients_weights = tff.federated_map(

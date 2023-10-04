@@ -106,7 +106,7 @@ def server_update(model, server_optimizer, server_state, weights_delta):
   server_optimizer.apply_gradients(grads_and_vars)
 
   # Create a new state based on the updated model.
-  return tff.utils.update_state(
+  return tff.structure.update_struct(
       server_state,
       model=model_weights,
       optimizer_state=server_optimizer.variables(),
@@ -177,7 +177,7 @@ def create_client_update_fn():
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
 
-    aggregated_outputs = model.report_local_unfinalized_metrics()
+    model_output = aggregated_outputs = model.report_local_unfinalized_metrics()
 
     weights_delta = tf.nest.map_structure(lambda a, b: a - b,
                                           model_weights.trainable,
@@ -191,12 +191,11 @@ def create_client_update_fn():
       client_weight = tf.cast(num_examples, dtype=tf.float32)
     else:
       client_weight = client_weight_fn(aggregated_outputs)
-      
-    # optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
+
+    optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
 
     return ClientOutput(
-        weights_delta, client_weight, aggregated_outputs,
-        collections.OrderedDict([('num_examples', num_examples)]))
+        weights_delta, client_weight, model_output, optimizer_output)
 
   return client_update
 
