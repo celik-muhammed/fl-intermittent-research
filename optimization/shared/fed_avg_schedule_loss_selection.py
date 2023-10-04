@@ -24,14 +24,14 @@ Communication-Efficient Learning of Deep Networks from Decentralized Data
     https://arxiv.org/abs/1602.05629
 """
 
+import attr
 import collections
 from typing import Any, Union, Callable, Optional
-
-import attr
 from absl import logging
+
+import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
-
 
 import tensorflow_federated as tff
 from tensorflow_federated.python.core.impl.federated_context import intrinsics
@@ -262,8 +262,8 @@ def create_client_update_fn():
 
     # Initialize aggregated_outputs as empty tensors or values
     aggregated_loss = tf.constant(0.0, dtype=tf.float32)
-    aggregated_predictions = tf.constant([], dtype=tf.float32)
     aggregated_num_examples = tf.constant(0, dtype=tf.int32)
+    aggregated_predictions = None  # Initialize with None
 
     num_examples = tf.constant(0, dtype=tf.int32)
     for batch in dataset:
@@ -277,11 +277,16 @@ def create_client_update_fn():
       grads_and_vars = zip(grads, model_weights.trainable)
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
+
+      # Initialize aggregated_predictions shape based on the first run
+      if aggregated_predictions is None and output.predictions.shape is not None:
+          # Initialize with zeros with the same shape as output.predictions
+          aggregated_predictions = np.zeros(output.predictions.shape, dtype=output.predictions.dtype)
       
       # Accumulate loss, predictions, and num_examples
       aggregated_loss += output.loss
-      aggregated_predictions = tf.concat([aggregated_predictions, output.predictions], axis=0)
       aggregated_num_examples += tf.shape(output.predictions)[0]
+      aggregated_predictions = np.concatenate((aggregated_predictions, output.predictions), axis=0)
 
     # Now, aggregated_outputs contains the accumulated values
     # Calculate the mean loss over all batches
