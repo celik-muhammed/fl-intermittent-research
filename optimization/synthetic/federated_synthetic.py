@@ -14,7 +14,7 @@
 """Federated EMNIST character recognition library using TFF."""
 
 import functools
-from typing import Any, Union, Callable, Optional
+from typing import Any, Union, Callable, Optional, List
 
 from absl import logging
 import tensorflow as tf
@@ -51,7 +51,7 @@ def run_federated(
     max_batches_per_client: Optional[int] = -1,
     client_datasets_random_seed: Optional[int] = None,
     model: Optional[str] = 'cnn',
-    total_rounds: Optional[int] = 1500,
+    total_rounds: Optional[int] = 100,
     experiment_name: Optional[str] = 'federated_synthetic',
     root_output_dir: Optional[str] = '/tmp/fed_opt',
     max_eval_batches: Optional[int] = None,

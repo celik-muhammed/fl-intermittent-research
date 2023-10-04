@@ -33,7 +33,7 @@ def run_federated(
     clients_per_round: int,
     max_batches_per_client: Optional[int] = -1,
     client_datasets_random_seed: Optional[int] = None,
-    total_rounds: Optional[int] = 1500,
+    total_rounds: Optional[int] = 100,
     experiment_name: Optional[str] = 'federated_emnist_ae',
     root_output_dir: Optional[str] = '/tmp/fed_opt',
     max_eval_batches: Optional[int] = None,

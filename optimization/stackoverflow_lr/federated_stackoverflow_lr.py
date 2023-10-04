@@ -14,7 +14,7 @@
 """Federated Stack Overflow tag prediction (via logistic regression) using TFF."""
 
 import functools
-from typing import Any, Union, Callable, Optional
+from typing import Any, Union, Callable, Optional, List
 
 from absl import logging
 
@@ -46,7 +46,7 @@ def run_federated(
     vocab_tags_size: Optional[int] = 500,
     max_elements_per_user: Optional[int] = 1000,
     num_validation_examples: Optional[int] = 10000,
-    total_rounds: Optional[int] = 1500,
+    total_rounds: Optional[int] = 100,
     experiment_name: Optional[str] = 'federated_so_lr',
     root_output_dir: Optional[str] = '/tmp/fed_opt',
     max_eval_batches: Optional[int] = None,
