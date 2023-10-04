@@ -120,48 +120,20 @@ def server_update(model, server_optimizer, server_state, weights_delta):
       round_num=server_state.round_num + 1.0)
 
 
-@attr.s(frozen=True, slots=True, eq=False)
-class BatchOutput():
-  """A structure that holds the output of a `tff.learning.Model`.
-
-  Note: All fields are optional (may be None).
-
-  Attributes:
-    loss: The scalar mean loss on the examples in the batch. If the model
-      has multiple losses, it is the sum of all the individual losses.
-    predictions: Tensor of predictions on the examples. The first dimension
-      must be the same size (the size of the batch).
-    num_examples: Number of examples seen in the batch.
-  """
-  loss = attr.ib()
-  predictions = attr.ib()
-  num_examples = attr.ib()
-
-  def __getitem__(self, key):
-      if key == 'loss':
-          return self.loss
-      elif key == 'predictions':
-          return self.predictions
-      elif key == 'num_examples':
-          return self.num_examples
-      else:
-          raise KeyError(f"'{key}' is not a valid key for BatchOutput")
-
-
 @attr.s(eq=False, order=False, frozen=True)
 class ClientOutput(object):
   """Structure for outputs returned from clients during federated optimization.
 
   Fields:
   -   `weights_delta`: A dictionary of updates to the model's trainable
-      variables.
+        variables.
   -   `client_weight`: Weight to be used in a weighted mean when
-      aggregating `weights_delta`.
-  -   `model_output`: A structure matching
-      `tff.learning.Model.report_local_outputs`, reflecting the results of
-      training on the input dataset.
+        aggregating `weights_delta`.
+  -   `model_output`: A structure matching `Union[tff.learning.models.VariableModel, 
+        tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].report_local_unfinalized_metrics`, 
+        reflecting the results of training on the input dataset.
   -   `optimizer_output`: Additional metrics or other outputs defined by the
-      optimizer.
+        optimizer.
   """
   weights_delta = attr.ib()
   client_weight = attr.ib()
@@ -197,45 +169,16 @@ def create_client_update_fn():
     model_weights = _get_weights(model)
     tff.learning.models.ModelWeights(model_weights, initial_weights)
 
-    # Initialize aggregated_outputs as empty tensors or values
-    aggregated_loss = tf.constant(0.0, dtype=tf.float32)
-    aggregated_num_examples = tf.constant(0, dtype=tf.int32)
-    aggregated_predictions = tf.constant(0.0, dtype=tf.float32)
-
     num_examples = tf.constant(0, dtype=tf.int32)
     for batch in dataset:
       with tf.GradientTape() as tape:
         output = model.forward_pass(batch)
-
-      # Compute and apply gradients
       grads = tape.gradient(output.loss, model_weights.trainable)
-      #grads = tf.nest.map_structure(lambda g: clip_ops.clip_by_norm(g,5.0), grads)
-      grads, _ = tf.clip_by_global_norm(grads, 1.0)
       grads_and_vars = zip(grads, model_weights.trainable)
       client_optimizer.apply_gradients(grads_and_vars)
       num_examples += tf.shape(output.predictions)[0]
 
-      # Accumulate loss, predictions, and num_examples
-      aggregated_loss += output.loss
-      aggregated_num_examples += tf.shape(output.predictions)[0]
-      try:
-        # Check if the shape of output.predictions is not None
-        if output.predictions.shape is not None and len(output.predictions.shape) > 0:            
-          # Attempt to initialize aggregated_predictions with zeros with the same shape as output.predictions
-          if aggregated_predictions.shape != output.predictions.shape:
-              aggregated_predictions = np.zeros(output.predictions.shape, dtype=output.predictions.dtype)
-
-          # concatenate
-          aggregated_predictions = np.concatenate((aggregated_predictions, output.predictions), axis=0)
-      except Exception as e:
-        # Handle the exception (e.g., print a message, log the error, etc.)
-        print(f"An exception occurred: {e}")
-
-    # Now, aggregated_outputs contains the accumulated values
-    # Calculate the mean loss over all batches
-    aggregated_outputs = BatchOutput(loss=aggregated_loss / tf.cast(aggregated_num_examples, dtype=tf.float32),
-                                      predictions=aggregated_predictions,
-                                      num_examples=aggregated_num_examples)
+    aggregated_outputs = model.report_local_unfinalized_metrics()
 
     weights_delta = tf.nest.map_structure(lambda a, b: a - b,
                                           model_weights.trainable,
@@ -251,7 +194,7 @@ def create_client_update_fn():
       #client_weight = tf.cast(num_examples, dtype=tf.float32)
     #else:
       #client_weight = client_weight_fn(aggregated_outputs)
-
+      
     # optimizer_output = collections.OrderedDict([('num_examples', num_examples)])
 
     return ClientOutput(

@@ -90,7 +90,7 @@ class IterativeProcessBuilderTest(tf.test.TestCase, parameterized.TestCase):
     input_spec = _get_input_spec()
 
     def client_weight_fn(local_outputs):
-      return 1.0 / (1.0 + local_outputs['loss'][-1])
+      return 1.0 / (1.0 + local_outputs.loss[-1])
 
     iterproc = iterative_process_builder.from_flags(
         input_spec,
