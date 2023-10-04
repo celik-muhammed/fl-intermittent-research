@@ -33,6 +33,8 @@ import tensorflow as tf
 
 import tensorflow_federated as tff
 from tensorflow_federated.python.tensorflow_libs import tensor_utils
+from tensorflow_federated.python.common_libs import py_typecheck
+from tensorflow_federated.python.core.impl.types import computation_types
 
 
 # Convenience type aliases.
@@ -328,10 +330,10 @@ def build_fed_avg_process(
 
     aggregated_outputs = dummy_model.metric_finalizers() # client_outputs.model_output
 
-    # Check if it's a federated struct
-    # if isinstance(aggregated_outputs, tff.structure.Struct):
-    #   print("Result is a federated struct.", type(aggregated_outputs), aggregated_outputs)
-      # aggregated_outputs = tff.federated_zip(aggregated_outputs)
+    # Check aggregated_outputs cunvert a FederatedType
+    if isinstance(aggregated_outputs.type_signature, computation_types.StructType):
+      # print("Result is a federated struct.", type(aggregated_outputs), aggregated_outputs)
+      aggregated_outputs = tff.federated_zip(aggregated_outputs)
 
     return server_state, aggregated_outputs
 

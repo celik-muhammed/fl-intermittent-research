@@ -34,17 +34,18 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 import tensorflow_federated as tff
-from tensorflow_federated.python.core.impl.federated_context import intrinsics
-from tensorflow_federated.python.tensorflow_libs import tensor_utils
 from tensorflow.python.ops import clip_ops
 from tensorflow_model_optimization.python.core.internal import tensor_encoding as te
-from tensorflow_federated.python.core.templates import measured_process
-from tensorflow_federated.python.core.impl.types import type_conversions
-from tensorflow_federated.python.core.impl.computation import computation_base
-from tensorflow_federated.python.core.impl.types import computation_types
-from tensorflow_federated.python.core.impl.types import placements
 from tensorflow_federated.python.learning import models
-
+from tensorflow_federated.python.tensorflow_libs import tensor_utils
+from tensorflow_federated.python.common_libs import py_typecheck
+from tensorflow_federated.python.core.impl.types import type_analysis
+from tensorflow_federated.python.core.impl.types import computation_types
+from tensorflow_federated.python.core.impl.types import type_conversions
+from tensorflow_federated.python.core.impl.types import placements
+from tensorflow_federated.python.core.impl.computation import computation_base
+from tensorflow_federated.python.core.impl.federated_context import intrinsics
+from tensorflow_federated.python.core.templates import measured_process
 
 NONE_SERVER_TYPE = computation_types.FederatedType((), placements.SERVER)
 
@@ -564,10 +565,10 @@ def build_fed_avg_process(
 
     aggregated_outputs = dummy_model.metric_finalizers() # client_outputs.model_output
 
-    # Check if it's a federated struct
-    # if isinstance(aggregated_outputs, tff.structure.Struct):
-    #   print("Result is a federated struct.", type(aggregated_outputs), aggregated_outputs)
-      # aggregated_outputs = tff.federated_zip(aggregated_outputs)
+    # Check aggregated_outputs cunvert a FederatedType
+    if isinstance(aggregated_outputs.type_signature, computation_types.StructType):
+      # print("Result is a federated struct.", type(aggregated_outputs), aggregated_outputs)
+      aggregated_outputs = tff.federated_zip(aggregated_outputs)
 
     return server_state, aggregated_outputs
 
