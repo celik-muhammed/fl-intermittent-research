@@ -379,11 +379,10 @@ def build_fed_avg_process(
     server_state = tff.federated_map(server_update_fn,
                                      (server_state, aggregation_output.result))
 
-    aggregated_outputs = dummy_model.metric_finalizers() # client_outputs.model_output
+    aggregated_outputs = dummy_model.report_local_unfinalized_metrics() # client_outputs.model_output
 
     # Check aggregated_outputs cunvert a FederatedType
-    if isinstance(aggregated_outputs.type_signature, computation_types.StructType):
-      # print("Result is a federated struct.", type(aggregated_outputs), aggregated_outputs)
+    if isinstance(aggregated_outputs, computation_types.StructType):
       aggregated_outputs = tff.federated_zip(aggregated_outputs)
 
     return server_state, aggregated_outputs
