@@ -75,7 +75,7 @@ class ModelDeltaProcessTest(tf.test.TestCase):
     federated_data = [[_batch_fn()]]
 
     def client_weight_fn(local_outputs):
-      return 1.0/(1.0 + local_outputs.loss[-1])
+      return 1.0/(1.0 + local_outputs['loss'][-1])
 
     iterproc = fed_avg_schedule.build_fed_avg_process(
         _uncompiled_model_builder,
