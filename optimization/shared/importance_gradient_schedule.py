@@ -137,6 +137,16 @@ class BatchOutput():
   predictions = attr.ib()
   num_examples = attr.ib()
 
+  def __getitem__(self, key):
+      if key == 'loss':
+          return self.loss
+      elif key == 'predictions':
+          return self.predictions
+      elif key == 'num_examples':
+          return self.num_examples
+      else:
+          raise KeyError(f"'{key}' is not a valid key for BatchOutput")
+
 
 @attr.s(eq=False, order=False, frozen=True)
 class ClientOutput(object):
