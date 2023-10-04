@@ -326,7 +326,12 @@ def build_fed_avg_process(
     server_state = tff.federated_map(server_update_fn,
                                      (server_state, model_delta))
 
-    aggregated_outputs = dummy_model.metric_finalizers() # as global, client_outputs.model_output
+    aggregated_outputs = dummy_model.metric_finalizers() # client_outputs.model_output
+
+    # Check if it's a federated struct
+    # if isinstance(aggregated_outputs, tff.structure.Struct):
+    #   print("Result is a federated struct.", type(aggregated_outputs), aggregated_outputs)
+      # aggregated_outputs = tff.federated_zip(aggregated_outputs)
 
     return server_state, aggregated_outputs
 
