@@ -300,11 +300,9 @@ def build_fed_avg_process(
     _initialize_optimizer_vars(model, server_optimizer)
     return server_update(model, server_optimizer, server_state, model_delta)
 
-  # @tff.federated_computation(
-  #     tff.FederatedType(server_state_type, tff.SERVER),
-  #     tff.FederatedType(tf_dataset_type, tff.CLIENTS),
-
-  @tff.tf_computation(server_state_type, tf_dataset_type)
+  @tff.federated_computation(
+      tff.FederatedType(server_state_type, tff.SERVER),
+      tff.FederatedType(tf_dataset_type, tff.CLIENTS))
   def run_one_round(server_state, federated_dataset):
     """Orchestration logic for one round of computation.
 
@@ -314,7 +312,7 @@ def build_fed_avg_process(
 
     Returns:
       A tuple of updated `ServerState` and the result of
-      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].metric_finalizers`.
+      `Union[tff.learning.models.VariableModel, tff.learning.models.FunctionalModel, tff.learning.models.ReconstructionModel].report_local_unfinalized_metrics`.
     """
     client_model = tff.federated_broadcast(server_state.model)
     client_round_num = tff.federated_broadcast(server_state.round_num)
