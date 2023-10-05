@@ -478,7 +478,7 @@ def build_fed_avg_process(
                                      (server_state, aggregation_output.result))
 
     # Compute the finalized metrics using the get_finalized_metrics function, or use """dummy_model"""
-    aggregated_outputs = get_finalized_metrics(server_state.model, federated_dataset)
+    aggregated_outputs = get_finalized_metrics(dummy_model, federated_dataset)
 
     # Convert the finalized metrics into a FederatedType
     # aggregated_outputs = tff.federated_value(finalized_metrics, tff.SERVER)
