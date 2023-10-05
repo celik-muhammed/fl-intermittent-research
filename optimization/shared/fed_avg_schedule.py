@@ -300,9 +300,8 @@ def build_fed_avg_process(
     _initialize_optimizer_vars(model, server_optimizer)
     return server_update(model, server_optimizer, server_state, model_delta)
   
-  @tff.federated_computation
+  @tf.function
   def get_finalized_metrics(model_instance, federated_values_list):
-      @tf.function
       def apply_finalizers(unfinalized_metrics, finalizers):
           finalized_metrics = collections.OrderedDict()
           for metric_name, unfinalized_value in unfinalized_metrics.items():

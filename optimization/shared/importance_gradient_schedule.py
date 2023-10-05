@@ -343,9 +343,8 @@ def build_fed_avg_process(
   #   return tf.math.multiply(weight, participated)
 
 
-  @tff.federated_computation
-  def get_finalized_metrics(model_instance, federated_values_list):
-      @tf.function
+  @tf.function
+  def get_finalized_metrics(model_instance, federated_values_list):      
       def apply_finalizers(unfinalized_metrics, finalizers):
           finalized_metrics = collections.OrderedDict()
           for metric_name, unfinalized_value in unfinalized_metrics.items():

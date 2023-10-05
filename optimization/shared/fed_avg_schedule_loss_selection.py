@@ -483,9 +483,8 @@ def build_fed_avg_process(
     return redefine_client_weight( losses_at_server, weights_at_server, effective_num_clients)
 
 
-  @tff.federated_computation
+  @tf.function
   def get_finalized_metrics(model_instance, federated_values_list):
-      @tf.function
       def apply_finalizers(unfinalized_metrics, finalizers):
           finalized_metrics = collections.OrderedDict()
           for metric_name, unfinalized_value in unfinalized_metrics.items():
