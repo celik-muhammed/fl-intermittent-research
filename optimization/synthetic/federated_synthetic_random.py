@@ -50,7 +50,7 @@ def run_federated(
     prob_transmit: Optional[float],
     max_batches_per_client: Optional[int] = -1,
     client_datasets_random_seed: Optional[int] = None,
-    total_rounds: Optional[int] = 100,
+    total_rounds: Optional[int] = 1500,
     experiment_name: Optional[str] = 'federated_synthetic_random',
     root_output_dir: Optional[str] = '/tmp/fed_opt',
     max_eval_batches: Optional[int] = None,

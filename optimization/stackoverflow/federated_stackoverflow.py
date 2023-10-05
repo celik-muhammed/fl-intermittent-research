@@ -44,7 +44,7 @@ def run_federated(
     latent_size: Optional[int] = 670,
     num_layers: Optional[int] = 1,
     shared_embedding: Optional[bool] = False,
-    total_rounds: Optional[int] = 100,
+    total_rounds: Optional[int] = 1500,
     experiment_name: Optional[str] = 'federated_so_nwp',
     root_output_dir: Optional[str] = '/tmp/fed_opt',
     max_eval_batches: Optional[int] = None,

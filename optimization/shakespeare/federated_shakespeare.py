@@ -62,7 +62,7 @@ def run_federated(
     max_batches_per_client: Optional[int] = -1,
     client_datasets_random_seed: Optional[int] = None,
     sequence_length: Optional[int] = 80,
-    total_rounds: Optional[int] = 100,
+    total_rounds: Optional[int] = 1500,
     experiment_name: Optional[str] = 'federated_shakespeare',
     root_output_dir: Optional[str] = '/tmp/fed_opt',
     max_eval_batches: Optional[int] = None,
