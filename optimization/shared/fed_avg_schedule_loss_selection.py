@@ -485,10 +485,13 @@ def build_fed_avg_process(
   # @tff.tf_computation(client_losses_type)
   # def dataset_to_tensor_fn(dataset):
   #   return dataset_to_tensor(dataset)
-  @tff.federated_computation(
-      tff.FederatedType(server_state_type, tff.SERVER),
-      tff.FederatedType(tf_dataset_type, tff.CLIENTS),
-      tff.FederatedType(id_type, tff.CLIENTS))
+
+  # @tff.federated_computation(
+  #     tff.FederatedType(server_state_type, tff.SERVER),
+  #     tff.FederatedType(tf_dataset_type, tff.CLIENTS),
+  #     tff.FederatedType(id_type, tff.CLIENTS))
+
+  @tff.tf_computation(server_state_type, tf_dataset_type, id_type)
   def run_one_round(server_state, federated_dataset, ids):
     """Orchestration logic for one round of computation.
 
@@ -564,14 +567,6 @@ def build_fed_avg_process(
                                       aggregation_output.result))
 
     aggregated_outputs = dummy_model.report_local_unfinalized_metrics() # client_outputs.model_output
-
-    # Define a federated computation
-    @tff.tf_computation
-    def custom_federated_computation(aggregated_outputs):
-        # TensorFlow code here
-        return aggregated_outputs
-    
-    aggregated_outputs = custom_federated_computation(aggregated_outputs)
 
     # Check aggregated_outputs cunvert a FederatedType
     if isinstance(aggregated_outputs, computation_types.StructType):
