@@ -330,6 +330,14 @@ def build_fed_avg_process(
 
     aggregated_outputs = dummy_model.report_local_unfinalized_metrics() # client_outputs.model_output
 
+    # Define a federated computation
+    @tff.tf_computation
+    def custom_federated_computation(aggregated_outputs):
+        # TensorFlow code here
+        return aggregated_outputs
+    
+    aggregated_outputs = custom_federated_computation(aggregated_outputs)
+
     # Check aggregated_outputs cunvert a FederatedType
     if isinstance(aggregated_outputs, computation_types.StructType):
       aggregated_outputs = tff.federated_zip(aggregated_outputs)
