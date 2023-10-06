@@ -344,6 +344,7 @@ def redefine_client_weight( losses,weights, effective_num_clients):
 def select_weight(weights, my_id):
   return tf.reshape(tf.gather(weights,my_id),shape=[])
 
+
 def build_fed_avg_process(
     total_clients: int,
     effective_num_clients: int,
@@ -451,6 +452,7 @@ def build_fed_avg_process(
     return client_update(model_fn(), tf_dataset, initial_model_weights,
                          client_optimizer,client_id,client_weight_fn)
 
+
   @tff.tf_computation(server_state_type, model_weights_type.trainable)
   def server_update_fn(server_state, model_delta):
     model = model_fn()
@@ -461,8 +463,8 @@ def build_fed_avg_process(
     _initialize_optimizer_vars(model, server_optimizer)
     return server_update(model, server_optimizer, server_state, model_delta)
 
-  id_type = tff.TensorType(shape=[1,1], dtype = tf.int32)
 
+  id_type = tff.TensorType(shape=[1,1], dtype = tf.int32)
   @tff.tf_computation(clients_weights_at_server_type, id_type)
   def select_weight_fn(clients_weights, local_id):
     return select_weight(clients_weights, local_id)
@@ -482,20 +484,6 @@ def build_fed_avg_process(
     """
     return redefine_client_weight( losses_at_server, weights_at_server, effective_num_clients)
 
-
-  @tf.function
-  def get_finalized_metrics(unfinalized_metrics, finalizers):    
-    # Initialize a dictionary to store Aggregate metrics
-    aggregated_metrics = collections.OrderedDict()
-    for metric_name, unfinalized_value in unfinalized_metrics.items():
-        finalizer_function = finalizers[metric_name]
-        finalized_value = finalizer_function(unfinalized_value)
-
-        if metric_name not in aggregated_metrics:
-            aggregated_metrics[metric_name] = []
-
-        aggregated_metrics[metric_name].append(finalized_value)
-    return aggregated_metrics
 
   # @tff.tf_computation(client_losses_type)
   # def dataset_to_tensor_fn(dataset):
@@ -578,22 +566,15 @@ def build_fed_avg_process(
     #     client_outputs.weights_delta, weight=client_weight)
 
     server_state = tff.federated_map(server_update_fn,
-                                     (server_state, aggregation_output.result))
+                                     (server_state, 
+                                      aggregation_output.result))
+    # V.18
+    # aggregated_outputs = dummy_model.federated_output_computation(
+    #     client_outputs.model_output)
+    # if aggregated_outputs.type_signature.is_struct():
+    #   aggregated_outputs = tff.federated_zip(aggregated_outputs)
 
-
-    # Get unfinalized metric values for the federated dataset
-    unfinalized_metrics = dummy_model.report_local_unfinalized_metrics()
-    print('unfinalized_metrics:', unfinalized_metrics)
-    # Get metric finalizers
-    finalizers = client_model.metric_finalizers()
-    print('finalizers:', finalizers)
-
-    # Compute the finalized metrics using the get_finalized_metrics function, or use """dummy_model"""
-    # aggregated_outputs = get_finalized_metrics(unfinalized_metrics, finalizers)
-    aggregated_outputs = unfinalized_metrics
-
-    # Convert the finalized metrics into a FederatedType
-    # aggregated_outputs = tff.federated_value(finalized_metrics, tff.SERVER)
+    aggregated_outputs = client_outputs.model_output
 
     return server_state, aggregated_outputs
 
