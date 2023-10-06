@@ -301,7 +301,7 @@ def build_fed_avg_process(
     return server_update(model, server_optimizer, server_state, model_delta)
   
   @tf.function
-  def get_finalized_metrics(model_instance, federated_values_list):
+  def get_finalized_metrics(model_instance, federated_dataset):
       def apply_finalizers(unfinalized_metrics, finalizers):
           finalized_metrics = collections.OrderedDict()
           for metric_name, unfinalized_value in unfinalized_metrics.items():
@@ -327,22 +327,20 @@ def build_fed_avg_process(
       # Initialize a dictionary to store finalized metrics
       finalized_metrics = collections.OrderedDict()
 
-      # Iterate through clients' federated values
-      for federated_values in federated_values_list:
-          # Get unfinalized metric values for the client
-          unfinalized_metrics = model_instance.report_local_unfinalized_metrics()
+      # Get unfinalized metric values for the federated dataset
+      unfinalized_metrics = model_instance.report_local_unfinalized_metrics()
 
-          # Apply finalizers to compute finalized metric values
-          client_finalized_metrics = apply_finalizers(unfinalized_metrics, finalizers)
+      # Apply finalizers to compute finalized metric values
+      client_finalized_metrics = apply_finalizers(unfinalized_metrics, finalizers)
 
-          # Update the finalized metrics with client metrics
-          for metric_name, client_metric in client_finalized_metrics.items():
-              if metric_name not in finalized_metrics:
-                  finalized_metrics[metric_name] = []
+      # Update the finalized metrics with client metrics
+      for metric_name, client_metric in client_finalized_metrics.items():
+          if metric_name not in finalized_metrics:
+              finalized_metrics[metric_name] = []
 
-              finalized_metrics[metric_name].extend(client_metric)
+          finalized_metrics[metric_name].extend(client_metric)
 
-      # Aggregate metrics across all clients
+      # Aggregate metrics
       aggregated_metrics = aggregate_metrics(finalized_metrics)
 
       return aggregated_metrics
