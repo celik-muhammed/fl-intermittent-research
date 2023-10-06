@@ -300,7 +300,7 @@ def build_fed_avg_process(
     _initialize_optimizer_vars(model, server_optimizer)
     return server_update(model, server_optimizer, server_state, model_delta)
   
-  
+
   @tf.function
   def get_finalized_metrics(unfinalized_metrics, finalizers):    
     # Initialize a dictionary to store Aggregate metrics
@@ -345,11 +345,14 @@ def build_fed_avg_process(
 
     # Get unfinalized metric values for the federated dataset
     unfinalized_metrics = dummy_model.report_local_unfinalized_metrics()
+    print('unfinalized_metrics:', unfinalized_metrics)
     # Get metric finalizers
-    finalizers = dummy_model.metric_finalizers()
+    finalizers = client_model.metric_finalizers()
+    print('finalizers:', finalizers)
 
     # Compute the finalized metrics using the get_finalized_metrics function, or use """dummy_model"""
-    aggregated_outputs = get_finalized_metrics(unfinalized_metrics, finalizers)
+    # aggregated_outputs = get_finalized_metrics(unfinalized_metrics, finalizers)
+    aggregated_outputs = unfinalized_metrics
 
     # Convert the finalized metrics into a FederatedType
     # aggregated_outputs = tff.federated_value(finalized_metrics, tff.SERVER)
