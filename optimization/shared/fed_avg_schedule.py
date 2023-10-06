@@ -300,50 +300,20 @@ def build_fed_avg_process(
     _initialize_optimizer_vars(model, server_optimizer)
     return server_update(model, server_optimizer, server_state, model_delta)
   
+  
   @tf.function
-  def get_finalized_metrics(model_instance, federated_dataset):
-      def apply_finalizers(unfinalized_metrics, finalizers):
-          finalized_metrics = collections.OrderedDict()
-          for metric_name, unfinalized_value in unfinalized_metrics.items():
-              finalizer_function = finalizers[metric_name]
-              finalized_value = finalizer_function(unfinalized_value)
+  def get_finalized_metrics(unfinalized_metrics, finalizers):    
+    # Initialize a dictionary to store Aggregate metrics
+    aggregated_metrics = collections.OrderedDict()
+    for metric_name, unfinalized_value in unfinalized_metrics.items():
+        finalizer_function = finalizers[metric_name]
+        finalized_value = finalizer_function(unfinalized_value)
 
-              if metric_name not in finalized_metrics:
-                  finalized_metrics[metric_name] = []
+        if metric_name not in aggregated_metrics:
+            aggregated_metrics[metric_name] = []
 
-              finalized_metrics[metric_name].append(finalized_value)
-          return finalized_metrics
-
-      def aggregate_metrics(finalized_metrics):
-          aggregated_metrics = collections.OrderedDict()
-          for metric_name, values_list in finalized_metrics.items():
-              aggregated_value = np.mean(values_list)  # You can use different aggregation methods
-              aggregated_metrics[metric_name] = aggregated_value
-          return aggregated_metrics
-
-      # Get metric finalizers
-      finalizers = model_instance.metric_finalizers()
-
-      # Initialize a dictionary to store finalized metrics
-      finalized_metrics = collections.OrderedDict()
-
-      # Get unfinalized metric values for the federated dataset
-      unfinalized_metrics = model_instance.report_local_unfinalized_metrics()
-
-      # Apply finalizers to compute finalized metric values
-      client_finalized_metrics = apply_finalizers(unfinalized_metrics, finalizers)
-
-      # Update the finalized metrics with client metrics
-      for metric_name, client_metric in client_finalized_metrics.items():
-          if metric_name not in finalized_metrics:
-              finalized_metrics[metric_name] = []
-
-          finalized_metrics[metric_name].extend(client_metric)
-
-      # Aggregate metrics
-      aggregated_metrics = aggregate_metrics(finalized_metrics)
-
-      return aggregated_metrics
+        aggregated_metrics[metric_name].append(finalized_value)
+    return aggregated_metrics
 
   @tff.federated_computation(
       tff.FederatedType(server_state_type, tff.SERVER),
@@ -372,8 +342,14 @@ def build_fed_avg_process(
     server_state = tff.federated_map(server_update_fn,
                                     (server_state, model_delta))
 
+
+    # Get unfinalized metric values for the federated dataset
+    unfinalized_metrics = dummy_model.report_local_unfinalized_metrics()
+    # Get metric finalizers
+    finalizers = dummy_model.metric_finalizers()
+
     # Compute the finalized metrics using the get_finalized_metrics function, or use """dummy_model"""
-    aggregated_outputs = get_finalized_metrics(dummy_model, federated_dataset)
+    aggregated_outputs = get_finalized_metrics(unfinalized_metrics, finalizers)
 
     # Convert the finalized metrics into a FederatedType
     # aggregated_outputs = tff.federated_value(finalized_metrics, tff.SERVER)
